@@ -1,0 +1,109 @@
+<!DOCTYPE HTML>
+
+<html>
+<head>
+<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>
+  <script type="text/javascript" src="//cdn.bootcss.com/socket.io/1.5.1/socket.io.min.js"></script>
+
+<script type="text/javascript" charset="utf-8">
+    
+ $(document).ready(function(){   
+    var socket = io.connect(null, {port: 5000, rememberTransport: false});
+    //var socket = io.connect('http://127.0.0.1:5000/' );
+
+    var input_list = [];
+    
+    socket.on('connect', function() {
+        socket.emit('connect_event', {data: 'connected!'});
+        });
+
+    $('form#FX_form').submit(function(event) {
+            console.log($('#option').val());
+            if ($('#option').val() == 'Add')
+            {
+                input_list.push($('#FX_data').val());
+                console.log($('#FX_data').val());
+            }
+            else
+            {
+                input_list.splice(input_list.indexOf($('#FX_data').val()), 1 )
+                console.log(input_list.length);
+            }
+            
+            socket.emit('client_event', {data: $('#FX_data').val(), option: $('#option').val()});
+            return false;
+    });
+    
+    socket.on('server_response', function(msg) {
+        console.log("message received!");
+        message_string = '<table class="table table-hover"> <thead> <tr> <th>  Rate  </th><th>  Value  </th></tr></thead> <tbody>';
+        for (i = 0; i < msg.data.length; i++)
+        {
+            message_string += '<tr>' + '<td>  ' + input_list[i].toString() + '  </td>' + '<td>  ' + msg.data[i].toString() + '  </td>' + '<tr>' 
+        }
+        message_string += '</tbody></table>'
+        console.log("printing result");
+        $('#quotation').html(message_string);
+    
+    });
+});
+ 	
+	
+</script>
+<style>
+
+
+.footer {
+   position: fixed;
+   left: 150px;
+   bottom: 0;
+   width: 80%;
+   background-color: white;
+   color: white;
+   text-align: left;
+}
+
+</style>
+	<title>FX</title>
+</head>
+
+<body>
+<div class = "container">
+    <h2>FX form</h2>
+    <p>Input a FX rate here:</p>
+    <form class = "form-inline" id="FX_form" method="POST" action='#'>
+        <div class="form-group"><input class = "form-control" type="text" name="input" id="FX_data" placeholder="e.g. USDHKD"></div>
+        <div class="form-group">
+            <select class="form-control" id="option">
+                <option>Add</option>
+                <option>Delete</option>
+            </select>
+        </div>
+        <br>
+        <br>
+        <div class = "form-group">
+            <button type="submit" class="btn btn-success">Submit</button>
+        </div>
+    </form>
+    <br><br><br>
+</div>
+
+<div class="container" id = "quotation">
+</div>
+
+<div class = "footer">
+<a href="https://www.freeforexapi.com">
+    <img alt="Free Forex API" src="https://www.freeforexapi.com/Images/link.png" height="20">
+</a>
+</div>
+</body>
+
+
+
+
+</html>
